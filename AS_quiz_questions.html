@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>English Questions Quiz</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: "Comic Sans MS", "Trebuchet MS", Arial, sans-serif;
+      overflow: hidden;
+      background: #f5e7ff;
+      color: #4a316f;
+      user-select: none;
+    }
+
+    .screen {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.45s ease, transform 0.45s ease;
+    }
+
+    .hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(1.03);
+    }
+
+    #startScreen {
+      background: radial-gradient(circle at 30% 20%, #fff4fd 0 12%, transparent 35%),
+        radial-gradient(circle at 78% 70%, #ffe6b7 0 10%, transparent 32%),
+        linear-gradient(135deg, #cdb7ff, #ffd6ef 48%, #ffe8a8);
+    }
+
+    .start-card {
+      width: min(520px, 82vw);
+      aspect-ratio: 1.25 / 1;
+      border-radius: 42px;
+      background: rgba(255, 255, 255, 0.34);
+      box-shadow: 0 24px 80px rgba(90, 55, 130, 0.25), inset 0 0 0 4px rgba(255,255,255,0.38);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .start-button {
+      width: min(260px, 52vw);
+      height: min(155px, 30vw);
+      border: none;
+      border-radius: 40px;
+      background: linear-gradient(145deg, #fff8d9, #ffd66e);
+      box-shadow: 0 16px 0 #e1a931, 0 22px 38px rgba(80, 50, 90, 0.25);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.12s ease, box-shadow 0.12s ease;
+    }
+
+    .start-button:active {
+      transform: translateY(10px);
+      box-shadow: 0 6px 0 #e1a931, 0 12px 24px rgba(80, 50, 90, 0.2);
+    }
+
+    .play-triangle {
+      width: 0;
+      height: 0;
+      border-top: 44px solid transparent;
+      border-bottom: 44px solid transparent;
+      border-left: 70px solid #9e6bff;
+      margin-left: 14px;
+      filter: drop-shadow(0 4px 0 rgba(105, 60, 160, 0.18));
+    }
+
+    #gameScreen {
+      background: linear-gradient(160deg, #fff4fb 0%, #efe1ff 42%, #fff2c7 100%);
+      padding: clamp(20px, 4vw, 54px);
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .coin-counter {
+      position: fixed;
+      top: clamp(16px, 3vw, 28px);
+      right: clamp(16px, 3vw, 34px);
+      min-width: 118px;
+      height: 58px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.72);
+      box-shadow: 0 10px 28px rgba(89, 59, 118, 0.16);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-size: clamp(24px, 4vw, 34px);
+      font-weight: 900;
+      z-index: 10;
+      color: #6a43a0;
+    }
+
+    .mini-coin {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 25%, #fff7aa 0 11%, #ffd94d 24%, #f4ab24 70%, #c78016 100%);
+      box-shadow: inset -4px -5px 0 rgba(176, 108, 13, 0.18), 0 4px 0 rgba(149, 87, 16, 0.25);
+      display: grid;
+      place-items: center;
+      color: #b96bba;
+      font-size: 19px;
+      border: 3px solid #fff1a6;
+    }
+
+    .question-wrap {
+      margin-top: clamp(82px, 12vh, 120px);
+      width: min(1000px, 94vw);
+      min-height: clamp(150px, 25vh, 230px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    #questionText {
+      font-size: clamp(42px, 8vw, 92px);
+      line-height: 1.05;
+      font-weight: 900;
+      color: #6f45a9;
+      text-shadow: 0 5px 0 rgba(255, 255, 255, 0.8);
+      animation: popIn 0.35s ease both;
+    }
+
+    .answers {
+      width: min(980px, 94vw);
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: clamp(16px, 2.6vw, 24px);
+      padding-bottom: clamp(18px, 5vh, 56px);
+    }
+
+    .answer-btn {
+      min-height: clamp(78px, 12vh, 112px);
+      border: none;
+      border-radius: 30px;
+      background: linear-gradient(145deg, #ffffff, #fff3cd);
+      color: #4d3372;
+      font-size: clamp(29px, 5vw, 52px);
+      font-weight: 900;
+      font-family: inherit;
+      box-shadow: 0 10px 0 #e7c45f, 0 18px 36px rgba(86, 59, 116, 0.14);
+      cursor: pointer;
+      transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.2s ease;
+    }
+
+    .answer-btn:active {
+      transform: translateY(7px) scale(0.99);
+      box-shadow: 0 3px 0 #e7c45f, 0 10px 20px rgba(86, 59, 116, 0.12);
+    }
+
+    .answer-btn.correct {
+      background: linear-gradient(145deg, #ecffe9, #bff5b8);
+      box-shadow: 0 10px 0 #7bc96f, 0 18px 36px rgba(86, 59, 116, 0.14);
+    }
+
+    .answer-btn.wrong {
+      background: linear-gradient(145deg, #ffe7ee, #ffb8ca);
+      box-shadow: 0 10px 0 #dd6e8b, 0 18px 36px rgba(86, 59, 116, 0.14);
+      animation: shake 0.3s ease;
+    }
+
+    .coin-burst {
+      position: fixed;
+      left: 50%;
+      top: 48%;
+      width: 130px;
+      height: 130px;
+      transform: translate(-50%, -50%) scale(0);
+      border-radius: 50%;
+      background: radial-gradient(circle at 28% 22%, #fffbd1 0 10%, #ffd944 23%, #f5a928 68%, #bb7218 100%);
+      border: 7px solid #fff1a0;
+      box-shadow: inset -10px -12px 0 rgba(170, 96, 12, 0.19), 0 20px 45px rgba(99, 59, 120, 0.28);
+      display: grid;
+      place-items: center;
+      color: #bc6ec9;
+      font-size: 58px;
+      z-index: 30;
+      pointer-events: none;
+      opacity: 0;
+    }
+
+    .coin-burst.show {
+      animation: coinPop 0.8s ease both;
+    }
+
+    .coin-burst::before,
+    .coin-burst::after {
+      content: "✦";
+      position: absolute;
+      color: #ffffff;
+      text-shadow: 0 0 8px #ffd94d;
+      font-size: 28px;
+      animation: sparkle 0.8s ease both;
+    }
+
+    .coin-burst::before {
+      left: -24px;
+      top: 14px;
+    }
+
+    .coin-burst::after {
+      right: -18px;
+      bottom: 18px;
+      animation-delay: 0.08s;
+    }
+
+    #finishScreen {
+      background: radial-gradient(circle at 50% 30%, #fff8d9 0 18%, transparent 42%),
+        linear-gradient(145deg, #d5c3ff, #ffd6ef 52%, #fff0b4);
+      flex-direction: column;
+      text-align: center;
+      padding: 28px;
+    }
+
+    .finish-card {
+      width: min(760px, 92vw);
+      border-radius: 42px;
+      background: rgba(255,255,255,0.58);
+      box-shadow: 0 26px 70px rgba(86, 52, 119, 0.22), inset 0 0 0 4px rgba(255,255,255,0.45);
+      padding: clamp(32px, 6vw, 60px);
+    }
+
+    .finish-title {
+      font-size: clamp(44px, 8vw, 86px);
+      color: #6f45a9;
+      text-shadow: 0 4px 0 rgba(255,255,255,0.75);
+      margin-bottom: 24px;
+    }
+
+    .big-coin-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      margin: 12px 0 26px;
+    }
+
+    .big-coin {
+      width: clamp(88px, 17vw, 140px);
+      height: clamp(88px, 17vw, 140px);
+      border-radius: 50%;
+      background: radial-gradient(circle at 28% 22%, #fffbd1 0 10%, #ffd944 23%, #f5a928 68%, #bb7218 100%);
+      border: 7px solid #fff1a0;
+      box-shadow: inset -10px -12px 0 rgba(170, 96, 12, 0.19), 0 18px 40px rgba(99, 59, 120, 0.24);
+      display: grid;
+      place-items: center;
+      color: #bc6ec9;
+      font-size: clamp(44px, 8vw, 70px);
+      animation: softBounce 1.3s ease-in-out infinite;
+    }
+
+    .score-text {
+      font-size: clamp(44px, 8vw, 82px);
+      font-weight: 900;
+      color: #4d3372;
+    }
+
+    .restart-btn {
+      margin-top: 10px;
+      min-width: min(340px, 78vw);
+      min-height: 78px;
+      border: none;
+      border-radius: 28px;
+      background: linear-gradient(145deg, #fff8d9, #ffd66e);
+      box-shadow: 0 10px 0 #e1a931, 0 17px 30px rgba(80, 50, 90, 0.2);
+      font-family: inherit;
+      font-size: clamp(28px, 5vw, 44px);
+      font-weight: 900;
+      color: #6f45a9;
+      cursor: pointer;
+    }
+
+    .restart-btn:active {
+      transform: translateY(7px);
+      box-shadow: 0 3px 0 #e1a931, 0 10px 20px rgba(80, 50, 90, 0.16);
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: translateY(-18px) scale(0.94); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-10px); }
+      50% { transform: translateX(10px); }
+      75% { transform: translateX(-5px); }
+    }
+
+    @keyframes coinPop {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(0) rotate(-18deg); }
+      28% { opacity: 1; transform: translate(-50%, -50%) scale(1.12) rotate(8deg); }
+      58% { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+      100% { opacity: 0; transform: translate(calc(-50% + 34vw), calc(-50% - 33vh)) scale(0.25) rotate(42deg); }
+    }
+
+    @keyframes sparkle {
+      0% { opacity: 0; transform: scale(0) rotate(0deg); }
+      45% { opacity: 1; transform: scale(1.5) rotate(28deg); }
+      100% { opacity: 0; transform: scale(0.3) rotate(80deg); }
+    }
+
+    @keyframes softBounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    @media (min-width: 820px) {
+      .answers {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .answer-btn {
+        min-height: 150px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <section id="startScreen" class="screen">
+    <div class="start-card">
+      <button class="start-button" id="startButton" aria-label="Start game">
+        <span class="play-triangle"></span>
+      </button>
+    </div>
+  </section>
+
+  <section id="gameScreen" class="screen hidden">
+    <div class="coin-counter">
+      <span class="mini-coin">♥</span>
+      <span id="coinCount">0</span>
+    </div>
+
+    <div class="question-wrap">
+      <h1 id="questionText"></h1>
+    </div>
+
+    <div class="answers" id="answersBox"></div>
+    <div class="coin-burst" id="coinBurst">♥</div>
+  </section>
+
+  <section id="finishScreen" class="screen hidden">
+    <div class="finish-card">
+      <h2 class="finish-title">Well done!</h2>
+      <div class="big-coin-row">
+        <div class="big-coin">♥</div>
+        <div class="score-text"><span id="finalScore">0</span>/12</div>
+      </div>
+      <button class="restart-btn" id="restartButton">Play again</button>
+    </div>
+  </section>
+
+  <script>
+    const startScreen = document.getElementById("startScreen");
+    const gameScreen = document.getElementById("gameScreen");
+    const finishScreen = document.getElementById("finishScreen");
+    const startButton = document.getElementById("startButton");
+    const restartButton = document.getElementById("restartButton");
+    const questionText = document.getElementById("questionText");
+    const answersBox = document.getElementById("answersBox");
+    const coinCount = document.getElementById("coinCount");
+    const finalScore = document.getElementById("finalScore");
+    const coinBurst = document.getElementById("coinBurst");
+
+    const questions = [
+      {
+        question: "How are you?",
+        correct: "I'm happy.",
+        options: ["I'm happy.", "I'm seven.", "I'm from Russia."]
+      },
+      {
+        question: "What's your name?",
+        correct: "My name is Ann.",
+        options: ["My name is Ann.", "I'm from Egypt.", "I'm eight."]
+      },
+      {
+        question: "How old are you?",
+        correct: "I'm eight.",
+        options: ["I'm eight.", "I'm fine.", "My name is Max."]
+      },
+      {
+        question: "Where are you from?",
+        correct: "I'm from Mexico.",
+        options: ["I'm from Mexico.", "I'm happy.", "I'm nine."]
+      },
+      {
+        question: "How are you?",
+        correct: "I'm fine.",
+        options: ["I'm ten.", "I'm fine.", "I'm from Great Britain."]
+      },
+      {
+        question: "Where are you from?",
+        correct: "I'm from Russia.",
+        options: ["I'm from Russia.", "I'm sleepy.", "My name is Kate."]
+      },
+      {
+        question: "What's your name?",
+        correct: "My name is Tom.",
+        options: ["I'm from Mexico.", "My name is Tom.", "I'm seven."]
+      },
+      {
+        question: "How old are you?",
+        correct: "I'm seven.",
+        options: ["I'm happy.", "I'm from Egypt.", "I'm seven."]
+      },
+      {
+        question: "Where are you from?",
+        correct: "I'm from Egypt.",
+        options: ["I'm nine.", "My name is Sam.", "I'm from Egypt."]
+      },
+      {
+        question: "How are you?",
+        correct: "I'm sleepy.",
+        options: ["I'm sleepy.", "I'm from Russia.", "I'm eight."]
+      },
+      {
+        question: "Where are you from?",
+        correct: "I'm from Great Britain.",
+        options: ["My name is Ann.", "I'm from Great Britain.", "I'm fine."]
+      },
+      {
+        question: "How old are you?",
+        correct: "I'm nine.",
+        options: ["I'm from Mexico.", "I'm nine.", "My name is Tom."]
+      }
+    ];
+
+    let currentQuestion = 0;
+    let coins = 0;
+    let locked = false;
+    let audioContext;
+
+    function initAudio() {
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioContext.state === "suspended") {
+        audioContext.resume();
+      }
+    }
+
+    function playClickSound() {
+      initAudio();
+      const oscillator = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      oscillator.type = "square";
+      oscillator.frequency.setValueAtTime(780, audioContext.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(520, audioContext.currentTime + 0.055);
+      gain.gain.setValueAtTime(0.14, audioContext.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.07);
+      oscillator.connect(gain);
+      gain.connect(audioContext.destination);
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + 0.075);
+    }
+
+    function playCoinSound() {
+      initAudio();
+      const notes = [880, 1175, 1568];
+      notes.forEach((note, index) => {
+        const oscillator = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        oscillator.type = "sine";
+        oscillator.frequency.setValueAtTime(note, audioContext.currentTime + index * 0.055);
+        gain.gain.setValueAtTime(0.001, audioContext.currentTime + index * 0.055);
+        gain.gain.exponentialRampToValueAtTime(0.16, audioContext.currentTime + index * 0.055 + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + index * 0.055 + 0.15);
+        oscillator.connect(gain);
+        gain.connect(audioContext.destination);
+        oscillator.start(audioContext.currentTime + index * 0.055);
+        oscillator.stop(audioContext.currentTime + index * 0.055 + 0.17);
+      });
+    }
+
+    function speak(text) {
+      if (!window.speechSynthesis) return;
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = "en-US";
+      utterance.rate = 0.78;
+      utterance.pitch = 1.18;
+      utterance.volume = 1;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function shuffle(array) {
+      return [...array].sort(() => Math.random() - 0.5);
+    }
+
+    function startGame() {
+      playClickSound();
+      currentQuestion = 0;
+      coins = 0;
+      locked = false;
+      coinCount.textContent = coins;
+      finalScore.textContent = coins;
+      startScreen.classList.add("hidden");
+      finishScreen.classList.add("hidden");
+      gameScreen.classList.remove("hidden");
+      setTimeout(showQuestion, 350);
+    }
+
+    function showQuestion() {
+      locked = false;
+      const item = questions[currentQuestion];
+      questionText.textContent = item.question;
+      questionText.style.animation = "none";
+      questionText.offsetHeight;
+      questionText.style.animation = "popIn 0.35s ease both";
+      answersBox.innerHTML = "";
+
+      shuffle(item.options).forEach(option => {
+        const button = document.createElement("button");
+        button.className = "answer-btn";
+        button.textContent = option;
+        button.addEventListener("click", () => checkAnswer(button, option));
+        answersBox.appendChild(button);
+      });
+
+      setTimeout(() => speak(item.question), 300);
+    }
+
+    function checkAnswer(button, option) {
+      if (locked) return;
+      locked = true;
+      playClickSound();
+
+      const item = questions[currentQuestion];
+      const allButtons = [...document.querySelectorAll(".answer-btn")];
+      allButtons.forEach(btn => btn.disabled = true);
+
+      if (option === item.correct) {
+        button.classList.add("correct");
+        coins += 1;
+        coinCount.textContent = coins;
+        playCoinSound();
+        showCoinAnimation();
+        setTimeout(nextQuestion, 950);
+      } else {
+        button.classList.add("wrong");
+        allButtons.forEach(btn => {
+          if (btn.textContent === item.correct) btn.classList.add("correct");
+        });
+        setTimeout(nextQuestion, 1100);
+      }
+    }
+
+    function showCoinAnimation() {
+      coinBurst.classList.remove("show");
+      coinBurst.offsetHeight;
+      coinBurst.classList.add("show");
+    }
+
+    function nextQuestion() {
+      currentQuestion += 1;
+      if (currentQuestion >= questions.length) {
+        finishGame();
+      } else {
+        showQuestion();
+      }
+    }
+
+    function finishGame() {
+      window.speechSynthesis?.cancel();
+      finalScore.textContent = coins;
+      gameScreen.classList.add("hidden");
+      finishScreen.classList.remove("hidden");
+      setTimeout(() => speak("Well done!"), 400);
+    }
+
+    startButton.addEventListener("click", startGame);
+    restartButton.addEventListener("click", startGame);
+  </script>
+</body>
+</html>
